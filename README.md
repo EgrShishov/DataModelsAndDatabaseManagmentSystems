@@ -9,14 +9,18 @@
 - Возможность записи на приём к врачу
 - Возможность выставления счетов пациентам за медицинские услуги и процедуры.
 - Возможность пациента видеть все свои платежи и задолженности.
+<hr></hr>
 
-## Список таблиц: 
+## Таблицы базы данных: 
+![alt text](https://github.com/EgrShishov/DataModelsAndDatabaseManagmentSystems/blob/main/Diagram.png)
+
 ## 1. Таблица `Roles`:
 - `RoleId`: SERIAL PRIMARY KEY - Уникальный идентификатор роли.
 - `RoleName`: VARCHAR(128) UNIQUE NOT NULL - Название роли (например, "Пациент", "Доктор", "Ресепшионист").
 
 ## 2. Таблица `Users`:
 - `UserId`: SERIAL PRIMARY KEY - Уникальный идентификатор пользователя.
+- `RoleId`: INTEGER REFERENCES Roles(RoleId) - Идентификатор роли пользователя.
 - `UserName`: VARCHAR(128) NOT NULL - Имя пользователя.
 - `Email`: VARCHAR(128) UNIQUE NOT NULL - Адрес электронной почты пользователя.
 - `PhoneNumber`: VARCHAR(20) NOT NULL - Мобильный телефон пользователя.
@@ -29,6 +33,7 @@
 - `PatientId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пациента.
 - `DoctorId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор доктора.
 - `OfficeId`: INTEGER REFERENCES Offices(OfficeId) ON DELETE CASCADE - Идентификатор офиса.
+- `ServiceId`: INTEGER REFRENCES Services(ServiceId) ON DELEET CASCADE - Идентификатор сервиса.
 - `Time`: TIMESTAMP NOT NULL - Время приема.
 - `IsApproved`: BOOLEAN DEFAULT FALSE - Статус одобрения заявки.
 
@@ -39,6 +44,7 @@
 
 ## 5. Таблица `Services`:
 - `ServiceId`: SERIAL PRIMARY KEY - Уникальный идентификатор услуги.
+- `ServiceCategoryId`: INTEGER REFERENCES ON ServiceCategory(ServiceCategoryId) - Идентификатор категории сервиса (например, анализы)
 - `ServiceName`: VARCHAR(128) NOT NULL - Название услуги.
 - `IsActive`: BOOLEAN DEFAULT TRUE - Доступна ли услуга в данный момент.
 
@@ -72,6 +78,7 @@
 - `ResultId`: SERIAL PRIMARY KEY - Уникальный идентификатор результата обследования.
 - `PatientId`: INTEGER REFERENCES Patients(PatientId) - Идентификатор пациента.
 - `DoctorId`: INTEGER REFERENCES Doctors(DoctorId) - Идентификатор доктора.
+- `DocumentId`: INTEGER REFERENCES Documents(DocumentId) - Идентификатор результатов анализов в PDF формате.
 - `AppointmentId`: INTEGER REFERENCES Appointments(AppointmentId) - Идентификатор приёма.
 - `Complaints`: TEXT NOT NULL - Жалобы пациента.
 - `Recommendations`: TEXT NOT NULL - Рекомендации врача.
