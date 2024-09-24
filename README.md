@@ -12,7 +12,7 @@
 <hr></hr>
 
 ## Таблицы базы данных: 
-![alt text](https://github.com/EgrShishov/DataModelsAndDatabaseManagmentSystems/blob/main/Diagram.png)
+![alt text](https://github.com/EgrShishov/DataModelsAndDatabaseManagmentSystems/blob/main/diagram_normilized.png)
 
 ## 1. Таблица `Roles`:
 - `RoleId`: SERIAL PRIMARY KEY - Уникальный идентификатор роли.
@@ -34,12 +34,18 @@
 - `DoctorId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор доктора.
 - `OfficeId`: INTEGER REFERENCES Offices(OfficeId) ON DELETE CASCADE - Идентификатор офиса.
 - `ServiceId`: INTEGER REFRENCES Services(ServiceId) ON DELEET CASCADE - Идентификатор сервиса.
-- `Time`: TIMESTAMP NOT NULL - Время приема.
+- `AppointmentDate`: DATE NOT NULL - Дата приёма.
+- `AppointmentTime`: TIME NOT NULL - Время приема.
 - `IsApproved`: BOOLEAN DEFAULT FALSE - Статус одобрения заявки.
 
 ## 4. Таблица `Offices`:
 - `OfficeId`: SERIAL PRIMARY KEY - Уникальный идентификатор офиса.
-- `Address`: VARCHAR(256) NOT NULL - Адрес офиса.
+- `Country`: VARCHAR(256) NOT NULL - Страна нахождения оффиса.
+- `Region`: VARCHAR(256) NOT NULL - Область.
+- `City`: VARCHAR(256) NOT NULL - Город.
+- `Street`: VARCHAR(256) NOT NULL - Улица оффиса.
+- `StreetNumber`: INTEGER NOT NULL - Номер дома.
+- `OfficeNumber`: INTEGER NOT NULL - Номер оффисного блока.
 - `PhoneNumber`: VARCHAR(20) NOT NULL - Номер телефона офиса.
 
 ## 5. Таблица `Services`:
@@ -101,7 +107,8 @@
 - `ProcedureCost`: NUMERIC(10, 2) NOT NULL - Стоимость процедуры.
 - `DoctorId`: INTEGER REFERENCES Doctors(DoctorId) ON DELETE CASCADE - Идентификатор врача, который проводит процедуру.
 - `PatientId`: INTEGER REFERENCES Patients(PatientId) ON DELETE CASCADE - Идентификатор пациента, которому выполняется процедура.
-- `ProcedureDate`: TIMESTAMP NOT NULL - Дата и время проведения процедуры.
+- `ProcedureTime`: TIME NOT NULL - Время проведения процедуры.
+- `ProcedureDate`: DATE NOT NULL - Дата проведения процедуры.
 
 ## 13. Таблица `Payments`:
 - `PaymentId`: SERIAL PRIMARY KEY - Уникальный идентификатор платежа.
