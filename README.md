@@ -5,117 +5,119 @@
 - Аутентификация\авторизация с ипользованием access\refresh токенов
 - Система ролей: пациент, ресепшионист, доктор
 - Журналирование действий пользователя
-- CRUD операции по управлению сущностями бд
-- Хранение фотографий и blob-контента?
+- CRUD операции для всех сущностей БД
 - Возможность записи на приём к врачу
-- 
+- Возможность выставления счетов пациентам за медицинские услуги и процедуры.
+- Возможность пациента видеть все свои платежи и задолженности.
 
 ## Список таблиц: 
-Таблица `Roles`:
- - `RoleId`: PRIMARY KEY: Уникальный идентификатор роли.
- - `RoleName`: VARCHAR(64) UNIQUE NOT NULL: Название роли (например, "Пациент", "Доктор", "Ресепшионист", "Администратор").
-<hr></hr>
+## 1. Таблица `Roles`:
+- `RoleId`: SERIAL PRIMARY KEY - Уникальный идентификатор роли.
+- `RoleName`: VARCHAR(128) UNIQUE NOT NULL - Название роли (например, "Пациент", "Доктор", "Ресепшионист").
 
-1. Таблица `Users`:
- - `UserName`: string, NOT_NULL
- - `Email`: string, UNIQUE, NOT_NULL
- - `PhoneNumber`: string, NOT_NULL
- - `IsEmailVerified`: BOOLEAN
- - `UserId`: string, PRIMARY_KEY
- - `PasswordHash`: string, NOT_NULL
- - `RefreshToken`: string
+## 2. Таблица `Users`:
+- `UserId`: SERIAL PRIMARY KEY - Уникальный идентификатор пользователя.
+- `UserName`: VARCHAR(128) NOT NULL - Имя пользователя.
+- `Email`: VARCHAR(128) UNIQUE NOT NULL - Адрес электронной почты пользователя.
+- `PhoneNumber`: VARCHAR(20) NOT NULL - Мобильный телефон пользователя.
+- `IsEmailVerified`: BOOLEAN DEFAULT FALSE - Подтверждена ли почта пользователя.
+- `PasswordHash`: TEXT NOT NULL - Хэш пароля.
+- `RefreshToken`: TEXT - Токен для обновления сеансов.
 
-2. Таблица `Appointments`:
- - `AppointmentId`: string, PRIMARY_KEY
- - `PatientId`: string, FOREIGN_KEY
- - `DoctorId`: string, FOREIGN_KEY 
- - `OfficeId`: string, FOREIGN_KEY
- - `Time`: DateField, NOT_NULL
- - `IsApprooved`: BOOLEAN
+## 3. Таблица `Appointments`:
+- `AppointmentId`: SERIAL PRIMARY KEY - Уникальный идентификатор записи.
+- `PatientId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пациента.
+- `DoctorId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор доктора.
+- `OfficeId`: INTEGER REFERENCES Offices(OfficeId) ON DELETE CASCADE - Идентификатор офиса.
+- `Time`: TIMESTAMP NOT NULL - Время приема.
+- `IsApproved`: BOOLEAN DEFAULT FALSE - Статус одобрения заявки.
 
-3. Таблица `Offices`:
- - `OfficeId`: string, PRIMARY_KEY
- - `Adress`: string, NOT_NULL
- - `PhoneNumber`: string, NOT_NULL
+## 4. Таблица `Offices`:
+- `OfficeId`: SERIAL PRIMARY KEY - Уникальный идентификатор офиса.
+- `Address`: VARCHAR(256) NOT NULL - Адрес офиса.
+- `PhoneNumber`: VARCHAR(20) NOT NULL - Номер телефона офиса.
 
-4. Таблица `Services`:
- - `ServiceId`: string, PRIMARY_KEY
- - `ServiceName`: string, NOT_NULL
- - `IsActive`: BOOLEAN
+## 5. Таблица `Services`:
+- `ServiceId`: SERIAL PRIMARY KEY - Уникальный идентификатор услуги.
+- `ServiceName`: VARCHAR(128) NOT NULL - Название услуги.
+- `IsActive`: BOOLEAN DEFAULT TRUE - Доступна ли услуга в данный момент.
 
-5. Таблица `Doctors`:
- - `DoctorId`: string, PRIMARY_KEY
- - `UserId`: string, FOREIGN_KEY ON DELETE CASCADE
- - `FirstName`: string, NOT_NULL
- - `LastName`: string, NOT_NULL
- - `MiddleName`: string, NOT_NULL
- - `DateOfBirth`: Time, NOT_NULL
- - `SpecializationId`: string, FOREIGN_KEY
- - `CareerStartYear`: integer, NOT_NULL
+## 6. Таблица `Doctors`:
+- `DoctorId`: SERIAL PRIMARY KEY - Уникальный идентификатор доктора.
+- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `FirstName`: VARCHAR(128) NOT NULL - Имя доктора.
+- `LastName`: VARCHAR(128) NOT NULL - Фамилия доктора.
+- `MiddleName`: VARCHAR(128) NOT NULL - Отчество доктора.
+- `DateOfBirth`: DATE NOT NULL - Дата рождения доктора.
+- `SpecializationId`: INTEGER REFERENCES Specializations(SpecializationId) ON DELETE CASCADE - Идентификатор специальности доктора.
+- `CareerStartYear`: INTEGER NOT NULL - Год начала карьеры.
 
-6. Таблица `Patients`:
- - `PatientId`: string, PRIMARY_KEY
- - `UserId`: string, FOREIGN_KEY ON DELETE CASCADE
- - `FirstName`: string, NOT_NULL
- - `LastName`: string, NOT_NULL
- - `MiddleName`: string, NOT_NULL
- - `DateOfBirth`: Time, NOT_NULL
+## 7. Таблица `Patients`:
+- `PatientId`: SERIAL PRIMARY KEY - Уникальный идентификатор пациента.
+- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `FirstName`: VARCHAR(128) NOT NULL - Имя пациента.
+- `LastName`: VARCHAR(128) NOT NULL - Фамилия пациента.
+- `MiddleName`: VARCHAR(128) NOT NULL - Отчество пациента.
+- `DateOfBirth`: DATE NOT NULL - Дата рождения пациента.
 
-7. Таблица `Receptionists`:
- - `ReceptionistId`: string, PRIMARY_KEY
- - `UserId`: string, FOREIGN_KEY ON DELETE CASCADE
- - `FirstName`: string, NOT_NULL
- - `LastName`: string, NOT_NULL
- - `MiddleName`: string, NOT_NULL
- - `DateOfBirth`: Time, NOT_NULL
+## 8. Таблица `Receptionists`:
+- `ReceptionistId`: SERIAL PRIMARY KEY - Уникальный идентификатор ресепшиониста.
+- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `FirstName`: VARCHAR(128) NOT NULL - Имя ресепшиониста.
+- `LastName`: VARCHAR(128) NOT NULL - Фамилия ресепшиониста.
+- `MiddleName`: VARCHAR(128) NOT NULL - Отчество ресепшиониста.
+- `DateOfBirth`: DATE NOT NULL - Дата рождения ресепшиониста.
 
-8. Таблица `Results`:
- - `ResultId`: string, PRIMARY_KEY
- - `PatientId`: string, FOREIGN_KEY 
- - `DoctorID`: string, FOREIGN_KEY
- - `Description`: string, NOT_NULL
- - `ResultDate`: Time, NOT_NULL
+## 9. Таблица `Results`:
+- `ResultId`: SERIAL PRIMARY KEY - Уникальный идентификатор результата обследования.
+- `PatientId`: INTEGER REFERENCES Patients(PatientId) - Идентификатор пациента.
+- `DoctorId`: INTEGER REFERENCES Doctors(DoctorId) - Идентификатор доктора.
+- `AppointmentId`: INTEGER REFERENCES Appointments(AppointmentId) - Идентификатор приёма.
+- `Complaints`: TEXT NOT NULL - Жалобы пациента.
+- `Recommendations`: TEXT NOT NULL - Рекомендации врача.
+- `Conclusion`: TEXT NOT NULL - Заключение врача.
 
-9. Таблица `Specializations`:
- - `SpecializationId`: string, PRIMARY_KEY
- - `SpecializationName`: string, NOT_NULL
+## 10. Таблица `Specializations`:
+- `SpecializationId`: SERIAL PRIMARY KEY - Уникальный идентификатор специальности.
+- `SpecializationName`: VARCHAR(128) NOT NULL - Название медицинской специальности.
 
-10. Таблица `Logs`:
- - `LogId`: string, PRIMARY_KEY
- - `UserId`: string, FOREUGN_KEY
- - `Action`: string, NOT_NULL
- - `ActiodDate`: Time, NOT_NULL
+## 11. Таблица `Logs`:
+- `LogId`: SERIAL PRIMARY KEY - Уникальный идентификатор лог-записи.
+- `UserId`: INTEGER REFERENCES Users(UserId) - Идентификатор пользователя.
+- `Action`: TEXT NOT NULL - Описание действия (например, запись на прием, добавление результатов и т.д.).
+- `ActionDate`: TIMESTAMP NOT NULL - Время, когда произошло действие.
 
-11. Таблица `MedicalRecords`:
- - `RecordId`: string, PRIMARY_KEY
- - `PatientId`: string, FOREIGN_KEY ON DELETE CASCADE
- - `DoctorId`: string, FOREIGN_KEY
- - `AppointmentId`: string, FOREIGN_KEY
- - `Complaints`: string, NOT_NULL
- - `Recomendations`: string, NOT_NULL
- - `Conclusion`: string, NOT_NULL
+## 12. Таблица `MedicalProcedures`:
+- `ProcedureId`: SERIAL PRIMARY KEY - Уникальный идентификатор медицинской процедуры.
+- `ProcedureName`: VARCHAR(128) NOT NULL - Название медицинской процедуры (например, "Удаление аппендикса").
+- `Description`: TEXT NOT NULL - Описание процедуры.
+- `ProcedureCost`: NUMERIC(10, 2) NOT NULL - Стоимость процедуры.
+- `DoctorId`: INTEGER REFERENCES Doctors(DoctorId) ON DELETE CASCADE - Идентификатор врача, который проводит процедуру.
+- `PatientId`: INTEGER REFERENCES Patients(PatientId) ON DELETE CASCADE - Идентификатор пациента, которому выполняется процедура.
+- `ProcedureDate`: TIMESTAMP NOT NULL - Дата и время проведения процедуры.
 
-12. Таблица `Payments`: 
-- `PaymentId`: string, PRIMARY_KEY
-- `Amount`: decimal(10,2), NOT_NULL
-- `UserId`: string, FOREIGN_KEY ON DELETE CASCADE
-- `PaymentDate`: Time, NOT_NULL 
- 
-13. Таблица `Prescriptions`:
-- `PrescriptionId` (SERIAL PRIMARY KEY): Уникальный идентификатор рецепта.
-- `PatientId` (INTEGER REFERENCES Patients(PatientId) ON DELETE CASCADE): Идентификатор пациента.
-- `DoctorId` (INTEGER REFERENCES Doctors(DoctorId) ON DELETE CASCADE): Идентификатор врача, выписавшего рецепт.
-- `PrescriptionDate` (TIMESTAMP NOT NULL): Дата и время выписки рецепта.
-- `Medication` (TEXT NOT NULL): Название препарата.
-- `Dosage` (TEXT NOT NULL): Информация о дозировке (например, 1 таблетка 2 раза в день).
-- `Duration` (INTEGER NOT NULL): Длительность приема (например, 10 дней).
+## 13. Таблица `Payments`:
+- `PaymentId`: SERIAL PRIMARY KEY - Уникальный идентификатор платежа.
+- `AppointmentId`: INTEGER REFERENCES Appointments(AppointmentId) - Идентификатор платного приёма\консультации.
+- `Amount`: NUMERIC(10, 2) NOT NULL - Сумма платежа.
+- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `PaymentDate`: TIMESTAMP NOT NULL - Дата и время платежа.
 
-14. Таблица `Documents`:
- - `DocumentId`: string, PRIMARY_KEY
- - `FilePath`: string, NOT_NULL 
+## 14. Таблица `Prescriptions`:
+- `PrescriptionId`: SERIAL PRIMARY KEY - Уникальный идентификатор рецепта.
+- `PatientId`: INTEGER REFERENCES Patients(PatientId) ON DELETE CASCADE - Идентификатор пациента.
+- `DoctorId`: INTEGER REFERENCES Doctors(DoctorId) ON DELETE CASCADE - Идентификатор врача, выписавшего рецепт.
+- `PrescriptionDate`: TIMESTAMP NOT NULL - Дата и время выписки рецепта.
+- `Medication`: VARCHAR(256) NOT NULL - Название препарата.
+- `Dosage`: VARCHAR(128) NOT NULL - Информация о дозировке (например, 1 таблетка 2 раза в день).
+- `Duration`: INTEGER NOT NULL - Длительность приема (например, 10 дней).
 
-15. Таблица ``:
- - ``:
+## 15. Таблица `Documents`:
+- `DocumentId`: SERIAL PRIMARY KEY - Уникальный идентификатор документов.
+- `DocumentType`: VARCHAR(128) NOT NULL - Тип документа (например, результаты анализов).
+- `FilePath`: TEXT NOT NULL - Путь к документам в файловой системе.
 
-... TBA
+## 16. Таблица `ServiceCategories`:
+- `ServiceCategoryId`: SERIAL PRIMARY KEY - Уникальный идентификатор категории.
+- `CategoryName`: VARCHAR(128) NOT NULL - Название категории.
 
