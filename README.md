@@ -12,7 +12,7 @@
 <hr></hr>
 
 ## Таблицы базы данных: 
-![alt text](https://github.com/EgrShishov/DataModelsAndDatabaseManagmentSystems/blob/main/diagram_normilized.png)
+![alt text](https://github.com/EgrShishov/DataModelsAndDatabaseManagmentSystems/blob/main/diagram_normalized.png)
 
 ## 1. Таблица `Roles`:
 - `RoleId`: SERIAL PRIMARY KEY - Уникальный идентификатор роли.
