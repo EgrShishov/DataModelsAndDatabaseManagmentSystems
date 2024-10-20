@@ -135,3 +135,7 @@
 - `ServiceCategoryId`: SERIAL PRIMARY KEY - Уникальный идентификатор категории.
 - `CategoryName`: VARCHAR(128) NOT NULL - Название категории.
 
+## 17. Таблица `AppointmentProcedures`:
+- `AppointmentId`: INTEGER REFERENCES Appointments(AppointmentId) ON DELETE CASCADE - Идентификатор приёма.
+- `ProcedureId`: INTEGER REFERENCES Procedures(ProcedureId) ON DELETE CASCADE - Идентификатор процедуры
+PRIMARY KEY(appointment_id, procedure_id) - Для обеспечения  уникальности двух записей.
