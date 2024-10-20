@@ -56,7 +56,7 @@
 
 ## 6. Таблица `Doctors`:
 - `DoctorId`: SERIAL PRIMARY KEY - Уникальный идентификатор доктора.
-- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `UserId`: INTEGER UNIQUE REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
 - `FirstName`: VARCHAR(128) NOT NULL - Имя доктора.
 - `LastName`: VARCHAR(128) NOT NULL - Фамилия доктора.
 - `MiddleName`: VARCHAR(128) NOT NULL - Отчество доктора.
@@ -66,7 +66,7 @@
 
 ## 7. Таблица `Patients`:
 - `PatientId`: SERIAL PRIMARY KEY - Уникальный идентификатор пациента.
-- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `UserId`: INTEGER UNIQUE REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
 - `FirstName`: VARCHAR(128) NOT NULL - Имя пациента.
 - `LastName`: VARCHAR(128) NOT NULL - Фамилия пациента.
 - `MiddleName`: VARCHAR(128) NOT NULL - Отчество пациента.
@@ -74,7 +74,7 @@
 
 ## 8. Таблица `Receptionists`:
 - `ReceptionistId`: SERIAL PRIMARY KEY - Уникальный идентификатор ресепшиониста.
-- `UserId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
+- `UserId`: INTEGER UNIQUE REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор пользователя.
 - `FirstName`: VARCHAR(128) NOT NULL - Имя ресепшиониста.
 - `LastName`: VARCHAR(128) NOT NULL - Фамилия ресепшиониста.
 - `MiddleName`: VARCHAR(128) NOT NULL - Отчество ресепшиониста.
