@@ -53,9 +53,9 @@ VALUES
 
 INSERT INTO Doctors (user_id, first_name, last_name, middle_name, date_of_birth, career_start_year, specialization_id)
 VALUES
-    (4, 'Yastremskiy', 'Yaroslav', 'Doctorovich', '1990-05-10', '2004', (SELECT specializations.specialization_id FROM Specializations WHERE specialization_name='General Practitioner')),
+    (4, 'Yastremskiy', 'Yaroslav', 'Doctorovich', '1990-05-10', '2004', (SELECT specialization_id FROM Specializations WHERE specialization_name='General Practitioner')),
     (7, 'Stanislav', 'Beakrev', 'Serggevich', '2005-01-24', '2020', (SELECT specialization_id FROM Specializations WHERE specialization_name='Cardiologist')),
-    (10, 'Darya', 'Makarevich', 'Studsovetovna', '2000-06-12', '2004', (SELECT specializations.specialization_id FROM Specializations WHERE specialization_name='Neurologist'));
+    (10, 'Darya', 'Makarevich', 'Studsovetovna', '2000-06-12', '2004', (SELECT specialization_id FROM Specializations WHERE specialization_name='Neurologist'));
 
 
 INSERT INTO Receptionists (user_id, first_name, last_name, middle_name, date_of_birth)
