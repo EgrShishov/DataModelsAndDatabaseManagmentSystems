@@ -140,6 +140,7 @@ CREATE INDEX idx_prescriptions_doctor_date ON Prescriptions(doctor_id, prescript
 CREATE INDEX idx_results_patient_appointment ON Results(patient_id, appointment_id);
 CREATE INDEX idx_payments_user_date ON Payments(user_id, payment_date);
 CREATE INDEX idx_appointments_doctor_date ON Appointments(doctor_id, appointment_date);
+CREATE INDEX idx_appointment_date_patient ON Appointments(appointment_date, patient_id);
 
 INSERT INTO AppointmentProcedures (appointment_id, procedure_id)
 VALUES
