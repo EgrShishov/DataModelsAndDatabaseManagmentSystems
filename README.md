@@ -161,3 +161,29 @@
 - `AppointmentId`: INTEGER REFERENCES Appointments(AppointmentId) ON DELETE CASCADE - Идентификатор приёма.
 - `ProcedureId`: INTEGER REFERENCES Procedures(ProcedureId) ON DELETE CASCADE - Идентификатор процедуры
 PRIMARY KEY(appointment_id, procedure_id) - Для обеспечения  уникальности двух записей.
+Таблица Invoices
+
+## 18. Таблица `Invoices`:
+### Хранит информацию о счетах-фактурах, выставленных пациентам за медицинские услуги. Каждый счёт связан с конкретным приёмом и пациентом.
+- `InvoiceId`: SERIAL PRIMARY KEY - Уникальный идентификатор счёта.
+- `PatientId`: INTEGER REFERENCES Patients(PatientId) ON DELETE CASCADE - Идентификатор пациента.
+- `AppointmentId`: INTEGER REFERENCES Appointments(AppointmentId) - Идентификатор приёма, за который выставлен счёт.
+- `TotalAmount`: NUMERIC(10, 2) NOT NULL - Общая сумма счёта.
+- `IsPaid`: BOOLEAN DEFAULT FALSE - Статус оплаты (оплачено/не оплачено).
+- `InvoiceDate`: TIMESTAMP DEFAULT NOW() - Дата и время выставления счёта.
+
+## 19. Таблица `Debts`:
+### Отслеживает задолженность пациентов перед клиникой. Она хранит общую сумму задолженности и дату последнего обновления.
+- `DebtId`: SERIAL PRIMARY KEY - Уникальный идентификатор задолженности.
+- `PatientId`: INTEGER REFERENCES Patients(PatientId) ON DELETE CASCADE - Идентификатор пациента.
+- `TotalDebt`: NUMERIC(10, 2) NOT NULL DEFAULT 0 - Общая сумма задолженности.
+- `LastUpdate`: TIMESTAMP DEFAULT NOW() - Дата последнего обновления записи о задолженности.
+
+## 20. Таблица `Notifications`:
+### Хранит уведомления о действиях в системе, отправленных пользователям (например, о назначении нового рецепта, обновлении результатов анализов и т.д.).
+- `NotificationId`: SERIAL PRIMARY KEY - Уникальный идентификатор уведомления.
+- `SenderId`: INTEGER REFERENCES Users(UserId) ON DELETE SET NULL - Идентификатор отправителя уведомления.
+- `ReceiverId`: INTEGER REFERENCES Users(UserId) ON DELETE CASCADE - Идентификатор получателя уведомления.
+- `Message`: TEXT NOT NULL - Текст уведомления.
+- `IsRead`: BOOLEAN DEFAULT FALSE - Статус прочтения уведомления (прочитано/не прочитано).
+- `NotificationDate`: TIMESTAMP DEFAULT NOW() - Дата и время отправки уведомления.
