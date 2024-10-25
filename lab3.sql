@@ -62,5 +62,13 @@ SELECT Sum(procedure_cost) AS total, procedure_name
 FROM MedicalProcedures
 GROUP BY procedure_name;
 
+/*количество апрувнутых по доктору*/
+SELECT doctor_id, COUNT(is_approved) as total
+FROM appointments
+GROUP BY doctor_id;
+
+SELECT * FROM patients;
+
+-- json stathem
 SELECT * FROM Patients
-WHERE first_name ILIKE '%Иван%' AND last_name ILIKE '%Иванов%';
+WHERE first_name ILIKE '%Js%' AND last_name ILIKE '%ath%';

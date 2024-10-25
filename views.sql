@@ -85,6 +85,8 @@ FROM Appointments a
 JOIN Patients p ON a.patient_id = p.patient_id
 GROUP BY p.patient_id, p.first_name, p.middle_name, p.last_name;
 
+CREATE INDEX idx_patient_id ON PatientsAppointmentsSummary (patient_id);
+
 CREATE VIEW PatientsAppointmentsSummaryNonMaterialized AS
 SELECT
     p.patient_id,

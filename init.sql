@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS Patients (
     user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
     first_name VARCHAR(128) NOT NULL,
     last_name VARCHAR(128) NOT NULL,
-    middle_name VARCHAR(128) NOT NULL,
+    middle_name VARCHAR(128),
     date_of_birth DATE NOT NULL);
 
 CREATE TABLE IF NOT EXISTS Specializations (
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS Doctors (
     user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
     first_name VARCHAR(128) NOT NULL,
     last_name VARCHAR(128) NOT NULL,
-    middle_name VARCHAR(128) NOT NULL,
+    middle_name VARCHAR(128),
     date_of_birth DATE NOT NULL,
     specialization_id INTEGER REFERENCES Specializations(specialization_id) ON DELETE CASCADE,
     career_start_year INTEGER NOT NULL);
@@ -41,7 +41,7 @@ CREATE TABLE IF NOT EXISTS Receptionists (
     user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE ,
     first_name VARCHAR(128) NOT NULL,
     last_name VARCHAR(128) NOT NULL,
-    middle_name VARCHAR(128) NOT NULL,
+    middle_name VARCHAR(128),
     date_of_birth DATE NOT NULL);
 
 CREATE TABLE IF NOT EXISTS ServiceCategory (
@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS ServiceCategory (
 
 CREATE TABLE IF NOT EXISTS Services (
     service_id SERIAL PRIMARY KEY,
-    service_category_id INTEGER REFERENCES ServiceCategory(service_category_id),
+    service_category_id INTEGER REFERENCES ServiceCategory(service_category_id) ON DELETE SET NULL,
     service_name VARCHAR(128) NOT NULL,
     is_active BOOLEAN DEFAULT TRUE);
 
@@ -125,4 +125,31 @@ CREATE TABLE IF NOT EXISTS AppointmentProcedures (
     appointment_id INTEGER NOT NULL REFERENCES Appointments(appointment_id) ON DELETE CASCADE,
     procedure_id INTEGER NOT NULL REFERENCES MedicalProcedures(procedure_id) ON DELETE CASCADE,
     PRIMARY KEY(appointment_id, procedure_id)
+);
+
+-- new tables (need to think)
+CREATE TABLE IF NOT EXISTS Invoice (
+    invoice_id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE SET NULL,
+    appointment_id INTEGER REFERENCES Appointments(appointment_id) ON DELETE SET NULL,
+    total_amount NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    is_paid BOOLEAN NOT NULL DEFAULT FALSE,
+    invoice_date DATE NOT NULL DEFAULT now(),
+    invoice_time TIME NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS Debts (
+    debt_id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE SET NULL,
+    total_debt NUMERIC(10, 2) NOT NULL DEFAULT 0,
+    last_update TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS Notifications (
+    notification_id SERIAL PRIMARY KEY,
+    message TEXT NOT NULL,
+    sender_id INTEGER REFERENCES Users(user_id) ON DELETE SET NULL,
+    reciever_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
+    notification_date TIMESTAMP NOT NULL DEFAULT(now()),
+    is_read BOOLEAN NOT NULL DEFAULT FALSE
 );

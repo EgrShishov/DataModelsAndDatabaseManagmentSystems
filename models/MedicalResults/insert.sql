@@ -1,2 +1,2 @@
 INSERT INTO results (patient_id, doctor_id, document_id, appointment_id, complaints, recommendations, conclusion)
-VALUES (1, 2, 3, 1, 'Headache for 3 days', 'Take painkillers twice a day', 'Migraine');
+VALUES (1, 2, 3, 44, 'Headache for 6 days', 'Take painkillers twice a day', 'Migraine v2');
