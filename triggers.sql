@@ -1,3 +1,22 @@
+-- user creating and hashing password trigger
+CREATE EXTENSION IF NOT EXISTS pgcrypto; --for bcrypt
+
+CREATE OR REPLACE FUNCTION hash_password()
+RETURNS TRIGGER AS $$
+    BEGIN
+        IF NEW.password_hash IS NOT NULL THEN
+            NEW.password_hash:= crypt(NEW.password_hash, gen_salt('bf'));
+        END IF;
+
+    RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER on_user_created
+BEFORE INSERT ON Users
+FOR EACH ROW
+EXECUTE FUNCTION hash_password();
+
 --user logging triggers
 CREATE OR REPLACE TRIGGER trigger_on_user_created
 AFTER INSERT ON Users

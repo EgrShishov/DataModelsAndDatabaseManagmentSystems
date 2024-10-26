@@ -15,16 +15,13 @@ AFTER INSERT OR UPDATE OR DELETE ON Payments
 FOR EACH ROW
 EXECUTE FUNCTION recalculate_patient_debt();
 
--- after payment for invoice status
+-- after payment update invoice status
 CREATE OR REPLACE FUNCTION update_invoice_status()
     RETURNS TRIGGER AS $$
     BEGIN
         UPDATE invoice
         SET is_paid = TRUE
-        WHERE patient_id = NEW.patient_id
-        AND total_amount <= (SELECT SUM(amount)
-                             FROM Payments
-                             WHERE patient_id = NEW.patient_id);
+        WHERE invoice_id = NEW.invoice_id;
 
         RETURN NEW;
     END;
@@ -126,31 +123,25 @@ BEFORE INSERT OR UPDATE ON Appointments
 FOR EACH ROW
 EXECUTE FUNCTION check_appointment_duplicates();
 
---function for creating invoice after appointment approving
-CREATE OR REPLACE FUNCTION create_invoice_after_appointment_aprooving()
-RETURNS TRIGGER AS $$
-    BEGIN
-        INSERT INTO Invoice (patient_id, appointment_id, total_amount, is_paid, invoice_date, invoice_time)
-        VALUES (NEW.patient_id, NEW.appointment_id,
-                (SELECT procedure_cost FROM medicalprocedures WHERE patient_id = NEW.patient_id ORDER BY procedure_date DESC LIMIT 1),
-                FALSE,
-                NOW(),
-                '24:00:00');
+-- cancel appointment if not paid
+CREATE OR REPLACE FUNCTION cancel_appointment_if_unpaid()
+    RETURNS TRIGGER AS $$
+BEGIN
+    IF (SELECT total_amount FROM Invoice WHERE patient_id = NEW.patient_id) > 0 THEN
+        UPDATE Appointments
+        SET is_approved = false
+        WHERE appointment_id = NEW.appointment_id;
+    END IF;
 
-        RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE TRIGGER trigger_on_appointment_aprooving
-AFTER UPDATE ON Appointments
-FOR EACH ROW
-WHEN (NEW.is_approved = True AND OLD.is_approved = False)
-EXECUTE FUNCTION create_invoice_after_appointment_aprooving();
-
-DROP FUNCTION create_invoice_after_appointment_aprooving() CASCADE;
-
---function
-
+CREATE OR REPLACE TRIGGER trigger_on_unpaid
+    AFTER UPDATE ON Invoice
+    FOR EACH ROW
+    WHEN (NEW.total_amount > 0)
+EXECUTE FUNCTION cancel_appointment_if_unpaid();
 
 --tests
 SELECT * FROM Appointments;

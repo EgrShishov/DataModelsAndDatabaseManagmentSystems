@@ -100,8 +100,6 @@ CREATE TABLE IF NOT EXISTS MedicalProcedures (
     procedure_name VARCHAR(128) NOT NULL,
     description TEXT NOT NULL,
     procedure_cost NUMERIC(10, 2) NOT NULL,
-    doctor_id INTEGER REFERENCES Doctors(doctor_id) ON DELETE CASCADE,
-    patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE CASCADE,
     procedure_time TIME NOT NULL,
     procedure_date DATE NOT NULL);
 
@@ -109,7 +107,7 @@ CREATE TABLE IF NOT EXISTS Payments (
     payment_id SERIAL PRIMARY KEY,
     appointment_id INTEGER REFERENCES Appointments(appointment_id),
     amount NUMERIC(10, 2) NOT NULL,
-    user_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
+    invoice_id INTEGER REFERENCES Invoice(invoice_id) ON DELETE CASCADE,
     payment_date TIMESTAMP NOT NULL);
 
 CREATE TABLE IF NOT EXISTS Prescriptions (
@@ -152,4 +150,20 @@ CREATE TABLE IF NOT EXISTS Notifications (
     reciever_id INTEGER REFERENCES Users(user_id) ON DELETE CASCADE,
     notification_date TIMESTAMP NOT NULL DEFAULT(now()),
     is_read BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- for integration with oAuthServices
+ALTER TABLE Users ADD COLUMN google_id TEXT;
+ALTER TABLE Users ADD COLUMN facebook_ud TEXT;
+-- alter table history
+ALTER TABLE Payments ADD COLUMN invoice_id INTEGER REFERENCES Invoice(invoice_id);
+ALTER TABLE Payments DROP COLUMN user_id;
+
+--new tables
+CREATE TABLE IF NOT EXISTS ProceduresHistory(
+    history_id SERIAL PRIMARY KEY,
+    patient_id INTEGER REFERENCES Patients(patient_id) ON DELETE CASCADE,
+    procedure_id INTEGER REFERENCES MedicalProcedures(procedure_id) ON DELETE CASCADE,
+    procedure_date DATE NOT NULL,
+    status VARCHAR(50) NOT NULL --'completed', 'pending', 'cancelled'
 );
