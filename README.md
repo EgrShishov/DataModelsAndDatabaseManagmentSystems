@@ -187,3 +187,10 @@ PRIMARY KEY(appointment_id, procedure_id) - Для обеспечения  ун�
 - `Message`: TEXT NOT NULL - Текст уведомления.
 - `IsRead`: BOOLEAN DEFAULT FALSE - Статус прочтения уведомления (прочитано/не прочитано).
 - `NotificationDate`: TIMESTAMP DEFAULT NOW() - Дата и время отправки уведомления.
+
+## 21. Таблица `ProceduresHistory`:
+- `HistoryId`: SERIAL PRIMARY KEY - Уникальный идентификатор записи.
+- `PatientId`: INTEGER REFERENCES Patients(patient_id) ON DELETE CASCADE - Идентификатор пациента.
+- `ProcedureId`: INTEGER REFERENCES MedicalProcedures(procedure_id) ON DELETE CASCADE - Идентификатор процедуры.
+- `ProcedureDate`: DATE NOT NULL - Дата проведения процедуры.
+- `Status`: VARCHAR(50) NOT NULL - Статус процедуры
