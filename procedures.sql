@@ -211,18 +211,22 @@ CREATE OR REPLACE PROCEDURE prescribe_medication(
     p_doctor_id INTEGER,
     p_medication VARCHAR(256),
     p_dosage VARCHAR(128),
-    p_duration INTEGER
+    p_duration INTEGER,
+    p_date DATE
 )
 AS $$
 DECLARE
     inserted_prescription_id INTEGER;
+    doctors_user_id INTEGER;
 BEGIN
     INSERT INTO Prescriptions (patient_id, doctor_id, prescription_date, medication, dosage, duration)
-    VALUES (p_patient_id, p_doctor_id, NOW(), p_medication, p_dosage, p_duration)
+    VALUES (p_patient_id, p_doctor_id, p_date, p_medication, p_dosage, p_duration)
     RETURNING prescription_id INTO inserted_prescription_id;
 
+    SELECT user_id FROM Doctors WHERE doctor_id = p_doctor_id INTO doctors_user_id;
+
     INSERT INTO Logs (user_id, action, action_date)
-    VALUES (p_doctor_id, CONCAT('Prescribe prescription', ' ', inserted_prescription_id), now());
+    VALUES (doctors_user_id, CONCAT('Prescribe prescription', ' ', inserted_prescription_id), now());
 END;
 $$ LANGUAGE plpgsql;
 
@@ -251,16 +255,19 @@ CREATE OR REPLACE PROCEDURE create_medical_result(
 AS $$
 DECLARE
     inserted_document_id INTEGER;
+    doctors_user_id INTEGER;
 BEGIN
+    SELECT user_id FROM Doctors WHERE doctor_id = p_doctor_id INTO doctors_user_id;
+
     INSERT INTO Documents (document_type, file_path)
     VALUES (p_document_type, p_document_path)
     RETURNING document_id INTO inserted_document_id;
 
     INSERT INTO Results (patient_id, doctor_id, document_id, appointment_id, complaints, recommendations, conclusion)
-    VALUES (p_patient_id, p_doctor_id, p_appointment_id, p_complaints, p_recommendations, p_conclusion);
+    VALUES (p_patient_id, p_doctor_id, inserted_document_id, p_appointment_id, p_complaints, p_recommendations, p_conclusion);
 
     INSERT INTO Logs (user_id, action, action_date)
-    VALUES (p_doctor_id,'Created result', now());
+    VALUES (doctors_user_id,'Created result', now());
 END
 $$ LANGUAGE plpgsql;
 
@@ -355,3 +362,39 @@ END;
 $$ LANGUAGE plpgsql;
 
 EXPLAIN SELECT * FROM get_service_report('2024-01-01', '2024-10-26');
+
+CREATE OR REPLACE FUNCTION get_doctors_patients(
+    p_doctor_id INTEGER)
+RETURNS TABLE (
+    patient_id INTEGER,
+    patients_name TEXT,
+    date_of_birth DATE,
+    email VARCHAR(128),
+    phone_number VARCHAR(20),
+    photo_url VARCHAR,
+    last_appointment_date DATE)
+AS $$
+DECLARE
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM Doctors WHERE doctor_id = p_doctor_id) THEN
+        RAISE EXCEPTION 'Doctor with id % does not exist', p_doctor_id;
+    END IF;
+
+    RETURN QUERY
+    SELECT
+        p.patient_id,
+        CONCAT(p.last_name, ' ', p.middle_name, ' ', p.first_name) as patients_name,
+        p.date_of_birth,
+        u.email,
+        u.phone_number,
+        u.photo_url,
+        MAX(a.appointment_date) AS last_appointment_date
+    FROM Patients p
+        JOIN Users u ON u.user_id = p.user_id
+        JOIN Appointments a ON a.patient_id = p.patient_id
+    WHERE a.doctor_id = p_doctor_id
+        GROUP BY p.patient_id, p.last_name, p.middle_name, p.first_name, u.phone_number, u.photo_url, p.date_of_birth, u.email
+        ORDER BY last_appointment_date DESC;
+
+END;
+$$ LANGUAGE plpgsql;
