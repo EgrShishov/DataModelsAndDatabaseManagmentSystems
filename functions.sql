@@ -151,3 +151,29 @@ SET is_approved = TRUE
 WHERE appointment_id = 41;
 
 SELECT * FROM Invoice;
+
+CREATE OR REPLACE FUNCTION get_patient_procedures(patientId INTEGER)
+RETURNS TABLE (
+  procedure_name VARCHAR,
+  procedure_date DATE,
+  status VARCHAR) AS $$
+DECLARE
+
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Patients WHERE patient_id = patientId) THEN
+        RAISE EXCEPTION 'Patient with ID % does not exist.', patientId;
+    END IF;
+
+    RETURN QUERY
+        SELECT
+            mp.procedure_name,
+            ph.procedure_date,
+            ph.status
+        FROM
+            ProceduresHistory ph
+                INNER JOIN
+            MedicalProcedures mp ON ph.procedure_id = mp.procedure_id
+        WHERE
+            ph.patient_id = patientId;
+END;
+$$ LANGUAGE plpgsql;

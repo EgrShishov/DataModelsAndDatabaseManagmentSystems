@@ -1,5 +1,5 @@
 -- procedures for creating accounts
-CREATE OR REPLACE PROCEDURE create_patient_account(
+CREATE OR REPLACE FUNCTION create_patient_account(
     email VARCHAR(128),
     password VARCHAR(256),
     first_name VARCHAR(128),
@@ -7,19 +7,20 @@ CREATE OR REPLACE PROCEDURE create_patient_account(
     middle_name VARCHAR(128),
     phone_number VARCHAR(20),
     date_of_birth DATE)
-AS $$
-DECLARE
-    inserted_user_id INTEGER;
+RETURNS TABLE(user_id INTEGER, patient_id INTEGER) AS $$
 BEGIN
     -- already in transaction
     INSERT INTO Users (role_id, user_name, email, phone_number, password_hash)
     VALUES ((SELECT role_id FROM Roles WHERE role_name = 'patient'),
             CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name),
             email, phone_number, password)
-    RETURNING user_id INTO inserted_user_id;
+    RETURNING Users.user_id INTO user_id;
 
     INSERT INTO Patients (user_id, first_name, last_name, middle_name, date_of_birth)
-    VALUES(inserted_user_id, first_name, last_name, middle_name, date_of_birth);
+    VALUES (user_id, first_name, last_name, middle_name, date_of_birth)
+    RETURNING Patients.patient_id INTO patient_id;
+
+    RETURN QUERY SELECT user_id, patient_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -31,25 +32,31 @@ CREATE OR REPLACE PROCEDURE create_doctors_account(
     middle_name VARCHAR(128),
     phone_number VARCHAR(20),
     date_of_birth DATE,
-    spec_name TEXT,
-    career_start_year INTEGER)
+    spec_id INTEGER,
+    career_start_year INTEGER,
+    OUT user_id INTEGER,
+    OUT doctor_id INTEGER)
 AS $$
 DECLARE
     inserted_user_id INTEGER;
-    selected_specialization_id INTEGER;
+    inserted_doctor_id INTEGER;
 BEGIN
+    IF NOT EXISTS (SELECT 1 FROM Specializations WHERE specialization_id = spec_id) THEN
+        RAISE EXCEPTION 'Specialization % does not exist', spec_id;
+    END IF;
+
     INSERT INTO Users (role_id, user_name, email, phone_number, password_hash)
     VALUES ((SELECT role_id FROM Roles WHERE role_name = 'doctor'),
             CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name),
             email, phone_number, password)
-    RETURNING user_id INTO inserted_user_id;
-
-    SELECT specialization_id INTO selected_specialization_id
-    FROM Specializations WHERE Specializations.specialization_name = spec_name;
+    RETURNING Users.user_id INTO inserted_user_id;
 
     INSERT INTO Doctors (user_id, first_name, last_name, middle_name, date_of_birth, specialization_id, career_start_year)
-    VALUES(inserted_user_id, first_name, last_name, middle_name, date_of_birth, specialization_id, career_start_year);
+    VALUES(inserted_user_id, first_name, last_name, middle_name, date_of_birth, spec_id, career_start_year)
+    RETURNING Doctors.doctor_id INTO inserted_doctor_id;
 
+    user_id := inserted_user_id;
+    doctor_id:= inserted_doctor_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -60,7 +67,9 @@ CREATE OR REPLACE PROCEDURE create_receptionists_account(
     last_name VARCHAR(128),
     middle_name VARCHAR(128),
     phone_number VARCHAR(20),
-    date_of_birth DATE)
+    date_of_birth DATE,
+    OUT user_id INTEGER,
+    OUT receptionist_id INTEGER)
 AS $$
 DECLARE
     inserted_user_id INTEGER;
@@ -69,11 +78,106 @@ BEGIN
     VALUES ((SELECT role_id FROM Roles WHERE role_name = 'receptionist'),
             CONCAT(first_name, ' ', COALESCE(middle_name, ''), ' ', last_name),
             email, phone_number, password)
-    RETURNING user_id INTO inserted_user_id;
+    RETURNING Users.user_id INTO inserted_user_id;
 
     INSERT INTO Receptionists (user_id, first_name, last_name, middle_name, date_of_birth)
-    VALUES(inserted_user_id, first_name, last_name, middle_name, date_of_birth);
+    VALUES(inserted_user_id, first_name, last_name, middle_name, date_of_birth)
+    RETURNING Receptionists.receptionist_id INTO receptionist_id;
 
+    user_id := inserted_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CALL create_receptionists_account(
+        'bekarevstanislav@gmail.com',
+        'ud115wov',
+        'Станислав',
+        'Бекарев',
+        'Сергеевич',
+        '+432764238422344',
+        '2005-01-24',
+        NULL,
+        NULL);
+
+
+-- procedures for deleting accounts
+CREATE OR REPLACE PROCEDURE delete_patient_account(
+    p_patient_id INTEGER)
+AS $$
+DECLARE
+    deleted_patient_user_id INTEGER;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM Patients WHERE patient_id = p_patient_id) THEN
+        RAISE EXCEPTION 'Patient % does not exists', p_patient_id;
+    END IF;
+
+    DELETE FROM Patients WHERE patient_id = p_patient_id RETURNING user_id INTO deleted_patient_user_id;
+
+    IF NOT EXISTS(SELECT 1 FROM Users WHERE user_id = deleted_patient_user_id) THEN
+        RAISE EXCEPTION 'User % related to patient % does not exists', deleted_patient_user_id, p_patient_id;
+    END IF;
+
+    DELETE FROM Users WHERE user_id = deleted_patient_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE delete_doctors_account(
+    p_doctor_id INTEGER)
+AS $$
+DECLARE
+    deleted_doctor_user_id INTEGER;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM Doctors WHERE doctor_id = p_doctor_id) THEN
+        RAISE EXCEPTION 'Doctor % does not exists', p_doctor_id;
+    END IF;
+
+    DELETE FROM Doctors WHERE doctor_id = p_doctor_id RETURNING user_id INTO deleted_doctor_user_id;
+
+    IF NOT EXISTS(SELECT 1 FROM Users WHERE user_id = deleted_doctor_user_id) THEN
+        RAISE EXCEPTION 'User % related to doctor % does not exists', deleted_doctor_user_id, p_doctor_id;
+    END IF;
+
+    DELETE FROM Users WHERE user_id = deleted_doctor_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE delete_receptionists_account(
+    p_receptionist_id INTEGER)
+AS $$
+DECLARE
+    deleted_receptionist_user_id INTEGER;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM Receptionists WHERE receptionist_id = p_receptionist_id) THEN
+        RAISE EXCEPTION 'Receptionist % does not exists', p_receptionist_id;
+    END IF;
+
+    DELETE FROM Receptionists WHERE receptionist_id = p_receptionist_id RETURNING user_id INTO deleted_receptionist_user_id;
+
+    IF NOT EXISTS(SELECT 1 FROM Users WHERE user_id = deleted_receptionist_user_id) THEN
+        RAISE EXCEPTION 'User % related to receptionists % does not exists', deleted_receptionist_user_id, p_receptionist_id;
+    END IF;
+
+    DELETE FROM Users WHERE user_id = deleted_receptionist_user_id;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE PROCEDURE delete_patient_account(
+    p_patient_id INTEGER)
+AS $$
+DECLARE
+    deleted_patient_user_id INTEGER;
+BEGIN
+    IF NOT EXISTS(SELECT 1 FROM Patients WHERE patient_id = p_patient_id) THEN
+        RAISE EXCEPTION 'Patient % does not exists', p_patient_id;
+    END IF;
+
+    DELETE FROM Patients WHERE patient_id = p_patient_id RETURNING user_id INTO deleted_patient_user_id;
+
+    IF NOT EXISTS(SELECT 1 FROM Users WHERE user_id = deleted_patient_user_id) THEN
+        RAISE EXCEPTION 'User % related to patient % does not exists', deleted_patient_user_id, p_patient_id;
+    END IF;
+
+    DELETE FROM Users WHERE user_id = deleted_patient_user_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -219,7 +323,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- procedure for uploading documents for result
-CREATE OR REPLACE PROCEDURE upload_document (document_type VARCHAR(128),
+CREATE OR REPLACE PROCEDURE upload_document(document_type VARCHAR(128),
                                               file_path TEXT,
                                               p_result_id INTEGER)
 AS $$
@@ -233,19 +337,6 @@ BEGIN
     UPDATE Results
     SET document_id = inserted_document_id
     WHERE result_id = p_result_id;
-END;
-$$ LANGUAGE plpgsql;
-
--- procedure for updating procedure
-CREATE OR REPLACE PROCEDURE update_medical_procedure(
-    p_procedure_id INTEGER,
-    p_new_cost NUMERIC(10, 2)
-) AS $$
-DECLARE
-BEGIN
-    UPDATE MedicalProcedures
-    SET procedure_cost = p_new_cost
-    WHERE procedure_id = p_procedure_id;
 END;
 $$ LANGUAGE plpgsql;
 
@@ -264,11 +355,3 @@ END;
 $$ LANGUAGE plpgsql;
 
 EXPLAIN SELECT * FROM get_service_report('2024-01-01', '2024-10-26');
-
--- usage
-CALL add_procedure_to_history(1, 4, '2024-07-10', 'completed');
-SELECT * FROM get_patient_procedures(1);
-SELECT * FROM procedureshistory;
-
--- usage
---CALL create_patient_account('mama', 'password', 'Alice', 'Johnson', 'Marie', '+274635437','1995-11-15');

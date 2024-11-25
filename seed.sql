@@ -19,11 +19,13 @@ VALUES
 
 INSERT INTO Users (user_name, email, phone_number, is_email_verified, password_hash, role_id)
 VALUES
+    ('receptionist', 'receptionist@example.com', '+375445717021', TRUE, 'password123',(SELECT roles.role_id FROM Roles WHERE role_name = 'receptionist'));
+
     ('rosto4eks', 'rosto4eks@gmail.com', '+375445717021', TRUE, 'hash1', (SELECT roles.role_id FROM Roles WHERE role_name = 'patient')),
     ('statham', 'statham@gmail.com', '+375445717021', TRUE,'hash2', (SELECT roles.role_id FROM Roles WHERE role_name = 'patient')),
     ('pupsik228', 'pupsik228@gmail.com', '+375445717021', FALSE, 'hash3',(SELECT roles.role_id FROM Roles WHERE role_name = 'patient')),
     ('yarik1337', 'yarik1337@gmail.com', '+375445717021', FALSE, 'hash4',(SELECT roles.role_id FROM Roles WHERE role_name = 'doctor')),
-    ('messi10', 'messi10@gmail.com', '+375445717021', TRUE, 'hash5',(SELECT roles.role_id FROM Roles WHERE role_name = 'receptionist')),
+    ('receptionist', 'receptionist@example.com', '+375445717021', TRUE, 'password123',(SELECT roles.role_id FROM Roles WHERE role_name = 'receptionist')),
     ('ronaldo7', 'ronaldo7@gmail.com', '+375445717021', TRUE, 'hash6',(SELECT roles.role_id FROM Roles WHERE role_name = 'receptionist')),
     ('bekarevstanislav', 'bekarevstanislav@gmail.com', '+375445717021', FALSE, 'hash7',(SELECT roles.role_id FROM Roles WHERE role_name = 'doctor')),
     ('shishov', 'e.shishov@gmail.com', '+375445717021', TRUE, 'hash8', (SELECT roles.role_id FROM Roles WHERE role_name = 'patient')),
@@ -60,7 +62,7 @@ VALUES
 
 INSERT INTO Receptionists (user_id, first_name, last_name, middle_name, date_of_birth)
 VALUES
-    (5, 'Sarah', 'Connor', 'Jane', '1992-07-18'),
+    (36, 'Sarah', 'Connor', 'Jane', '1992-07-18');
     (6, 'Peter', 'Parker', 'Benjamin', '1989-11-10');
 
 INSERT INTO Appointments (patient_id, doctor_id, office_id, service_id, appointment_date, appointment_time, is_approved)

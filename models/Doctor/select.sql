@@ -4,9 +4,12 @@ SELECT
     doctors.last_name,
     doctors.middle_name,
     doctors.career_start_year,
-    s.specialization_name
+    s.specialization_name,
+    u.email,
+    u
 FROM Doctors as doctors
-     JOIN Specializations as s ON doctors.specialization_id = s.specialization_id;
+     JOIN Specializations as s ON doctors.specialization_id = s.specialization_id
+     JOIN Users as u ON u.user_id = doctors.user_id;
 
 /*find by specialization*/
 SELECT

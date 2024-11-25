@@ -14,6 +14,25 @@ FROM Appointments AS a
 WHERE a.patient_id = 1
 ORDER BY a.appointment_date DESC;
 
+--paginated with cursor
+DECLARE appointment_cursor CURSOR WITH HOLD FOR
+SELECT
+    a.appointment_date,
+    a.appointment_time,
+    p.first_name AS patients_first_name,
+    p.last_name AS patients_last_name,
+    d.first_name AS doctors_first_name,
+    d.last_name AS doctors_last_name,
+    o.phone_number AS office_phone_number
+FROM Appointments AS a
+         JOIN Patients AS p ON (a.patient_id=p.patient_id)
+         JOIN Doctors AS d ON (a.doctor_id=d.doctor_id)
+         JOIN Offices AS o ON (a.office_id=o.office_id)
+WHERE a.patient_id = 1
+ORDER BY a.appointment_date DESC;
+
+FETCH FORWARD 10 IN appointment_cursor;
+
 /*поулчение всех встреч с докторами для пациента*/
 SELECT
     a.appointment_date,
@@ -131,3 +150,24 @@ FROM appointments a
          JOIN offices o ON o.office_id = a.office_id
 WHERE p.patient_id = 3
 ORDER BY a.appointment_date DESC, a.appointment_time DESC;
+
+-- all appointments
+DECLARE appointments_select_cursor CURSOR WITH HOLD FOR
+SELECT * FROM appointments;
+
+FETCH FORWARD 2 IN appointments_select_cursor;
+FETCH FORWARD 2 IN appointments_select_cursor;
+FETCH FORWARD 4 IN appointments_select_cursor;
+
+SELECT * FROM appointments
+LIMIT 2 OFFSET 4; -- not so efficient as declare cursor
+
+SELECT
+    p.first_name,
+    p.last_name,
+    o.street,
+    o.office_number
+FROM
+    patients p
+    JOIN appointments a on a.patient_id = p.patient_id
+    JOIN offices o on a.office_id = o.office_id;
